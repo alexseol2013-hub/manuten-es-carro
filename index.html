@@ -20,7 +20,6 @@
         <span class="brand-mark">GZ</span>
         <span class="brand-name">Garagem Zero</span>
       </div>
-      <p class="onb-step" id="onbStepLabel">Passo 1 de 2 · Seu carro</p>
       <div class="progress"><div class="progress-fill" id="onbProgress" style="width:50%"></div></div>
     </header>
 
@@ -71,8 +70,8 @@
     </div>
   </section>
 
-  <!-- ===================== DASHBOARD ===================== -->
-  <section id="dashboard" class="screen" hidden>
+  <!-- ===================== HOME (MENU) ===================== -->
+  <section id="homeScreen" class="screen" hidden>
 
     <header class="dash-head">
       <div class="brand">
@@ -120,6 +119,49 @@
         <p class="level-sub" id="levelSub">100 pts para o próximo nível</p>
       </div>
 
+      <!-- menu -->
+      <div class="menu-list">
+        <button class="menu-card" id="goManutencoes">
+          <span class="menu-icon">🔧</span>
+          <span class="menu-text">
+            <span class="menu-title">Manutenções</span>
+            <span class="menu-sub" id="menuManutSub">Histórico e lembretes</span>
+          </span>
+          <span class="menu-chevron">›</span>
+        </button>
+        <button class="menu-card" id="goConsumo">
+          <span class="menu-icon">⛽</span>
+          <span class="menu-text">
+            <span class="menu-title">Consumo real</span>
+            <span class="menu-sub" id="menuConsumoSub">Registre seus abastecimentos</span>
+          </span>
+          <span class="menu-chevron">›</span>
+        </button>
+        <button class="menu-card" id="goCalculadora">
+          <span class="menu-icon">🧮</span>
+          <span class="menu-text">
+            <span class="menu-title">Álcool ou gasolina</span>
+            <span class="menu-sub">Veja o que compensa mais</span>
+          </span>
+          <span class="menu-chevron">›</span>
+        </button>
+      </div>
+
+      <div class="footer-space"></div>
+    </div>
+  </section>
+
+  <!-- ===================== MANUTENÇÕES ===================== -->
+  <section id="maintenanceScreen" class="screen" hidden>
+
+    <header class="dash-head">
+      <button class="icon-btn" id="backFromManut" aria-label="Voltar">←</button>
+      <span class="screen-title">Manutenções</span>
+      <span style="width:36px;"></span>
+    </header>
+
+    <div class="dash-scroll">
+
       <!-- reminders -->
       <div class="card">
         <div class="section-title-row">
@@ -142,7 +184,7 @@
 
       <!-- maintenance categories -->
       <div class="section-title-row top-gap">
-        <p class="section-title">Manutenções</p>
+        <p class="section-title">Categorias</p>
       </div>
       <div id="dashCategories" class="cat-list"></div>
 
@@ -150,13 +192,12 @@
     </div>
   </section>
 
-  <!-- ===================== FUEL LOG ===================== -->
+  <!-- ===================== CONSUMO REAL ===================== -->
   <section id="fuelScreen" class="screen" hidden>
     <header class="dash-head">
-      <div class="brand">
-        <span class="brand-mark">GZ</span>
-        <span class="brand-name">Abastecimentos</span>
-      </div>
+      <button class="icon-btn" id="backFromFuel" aria-label="Voltar">←</button>
+      <span class="screen-title">Consumo real</span>
+      <span style="width:36px;"></span>
     </header>
 
     <div class="dash-scroll">
@@ -222,13 +263,12 @@
     </div>
   </section>
 
-  <!-- ===================== FUEL CALCULATOR ===================== -->
+  <!-- ===================== CALCULADORA ===================== -->
   <section id="calcScreen" class="screen" hidden>
     <header class="dash-head">
-      <div class="brand">
-        <span class="brand-mark">GZ</span>
-        <span class="brand-name">Álcool ou gasolina?</span>
-      </div>
+      <button class="icon-btn" id="backFromCalc" aria-label="Voltar">←</button>
+      <span class="screen-title">Álcool ou gasolina</span>
+      <span style="width:36px;"></span>
     </header>
 
     <div class="dash-scroll">
@@ -263,22 +303,6 @@
       <div class="footer-space"></div>
     </div>
   </section>
-
-  <!-- ===================== BOTTOM NAV ===================== -->
-  <nav class="bottom-nav" id="bottomNav" hidden>
-    <button class="nav-btn active" data-screen="dashboard" id="navDashboard">
-      <span class="nav-icon">🏠</span>
-      <span>Painel</span>
-    </button>
-    <button class="nav-btn" data-screen="fuel" id="navFuel">
-      <span class="nav-icon">⛽</span>
-      <span>Consumo</span>
-    </button>
-    <button class="nav-btn" data-screen="calc" id="navCalc">
-      <span class="nav-icon">🧮</span>
-      <span>Álcool x Gasolina</span>
-    </button>
-  </nav>
 
 </div>
 

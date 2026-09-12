@@ -272,14 +272,12 @@ function initOnboardingFlow(){
     renderOnboardingCategories();
     $("#onbStep1").hidden = true;
     $("#onbStep2").hidden = false;
-    $("#onbStepLabel").textContent = "Passo 2 de 2 · Manutenções";
     $("#onbProgress").style.width = "100%";
   });
 
   $("#btnBackStep1").addEventListener("click", () => {
     $("#onbStep2").hidden = true;
     $("#onbStep1").hidden = false;
-    $("#onbStepLabel").textContent = "Passo 1 de 2 · Seu carro";
     $("#onbProgress").style.width = "50%";
   });
 
@@ -289,14 +287,14 @@ function initOnboardingFlow(){
     const filled = state.items.filter(i => i.done && (i.lastDate || i.lastKm != null)).length;
     state.points += filled * 10;
     saveState();
-    showDashboard();
+    showHome();
   });
 }
 
 /* ===================================================================
-   DASHBOARD
+   HOME (MENU)
 =================================================================== */
-function renderDashboard(){
+function renderHome(){
   const v = state.vehicle;
   $("#vModel").textContent = v.model || "Seu carro";
   $("#vYear").textContent = v.year ? `Ano ${v.year}` : "—";
@@ -322,6 +320,19 @@ function renderDashboard(){
     $("#levelSub").textContent = "Nível máximo alcançado";
   }
 
+  const overdueCount = state.items.filter(i => itemStatus(i) === "overdue").length;
+  $("#menuManutSub").textContent = overdueCount > 0
+    ? `${overdueCount} item${overdueCount > 1 ? 's' : ''} vencido${overdueCount > 1 ? 's' : ''}`
+    : "Histórico e lembretes";
+
+  const avgA = averageKmPerLiter("Álcool");
+  const avgG = averageKmPerLiter("Gasolina");
+  $("#menuConsumoSub").textContent = (avgA || avgG)
+    ? [avgA ? `Álcool ${avgA.toFixed(1)} km/l` : null, avgG ? `Gasolina ${avgG.toFixed(1)} km/l` : null].filter(Boolean).join(" · ")
+    : "Registre seus abastecimentos";
+}
+
+function renderMaintenance(){
   renderReminders();
   renderDashboardCategories();
 }
@@ -445,7 +456,8 @@ function initModal(){
     else state.points += 5;
     saveState();
     closeEditModal();
-    renderDashboard();
+    renderHome();
+    renderMaintenance();
     toast("Manutenção atualizada");
   });
 }
@@ -484,7 +496,8 @@ function initAddModal(){
     $("#addName").value = "";
     $("#addIntervalKm").value = "";
     $("#addIntervalMonths").value = "";
-    renderDashboard();
+    renderHome();
+    renderMaintenance();
     toast("Manutenção adicionada");
   });
 }
@@ -501,7 +514,8 @@ function initKmUpdate(){
     state.vehicle.km = num;
     state.points += 2;
     saveState();
-    renderDashboard();
+    renderHome();
+    renderMaintenance();
     toast("Quilometragem atualizada");
   }
   $("#btnUpdateKm").addEventListener("click", promptKm);
@@ -517,7 +531,7 @@ function initEditVehicle(){
     state.vehicle.model = model.trim();
     state.vehicle.year = year ? year.trim() : "";
     saveState();
-    renderDashboard();
+    renderHome();
   });
 }
 
@@ -607,7 +621,7 @@ function saveFuelEntry(){
   saveState();
   toast("Abastecimento salvo");
   renderFuelScreen();
-  renderDashboard();
+  renderHome();
 }
 
 function renderFuelScreen(){
@@ -699,36 +713,43 @@ function renderCalc(){
 /* ===================================================================
    SCREEN SWITCHING
 =================================================================== */
+const ALL_SCREENS = ["onboarding", "homeScreen", "maintenanceScreen", "fuelScreen", "calcScreen"];
+
+function showOnly(screenId){
+  ALL_SCREENS.forEach(id => { $("#" + id).hidden = (id !== screenId); });
+}
+
 function showOnboarding(){
-  $("#onboarding").hidden = false;
-  $("#dashboard").hidden = true;
-  $("#fuelScreen").hidden = true;
-  $("#calcScreen").hidden = true;
-  $("#bottomNav").hidden = true;
+  showOnly("onboarding");
 }
 
-function showDashboard(){
-  $("#onboarding").hidden = true;
-  $("#bottomNav").hidden = false;
-  showTab("dashboard");
+function showHome(){
+  showOnly("homeScreen");
+  renderHome();
 }
 
-function showTab(tab){
-  $("#dashboard").hidden = tab !== "dashboard";
-  $("#fuelScreen").hidden = tab !== "fuel";
-  $("#calcScreen").hidden = tab !== "calc";
-
-  $all(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === tab));
-
-  if(tab === "dashboard") renderDashboard();
-  if(tab === "fuel") renderFuelScreen();
-  if(tab === "calc") renderCalc();
+function showMaintenance(){
+  showOnly("maintenanceScreen");
+  renderMaintenance();
 }
 
-function initBottomNav(){
-  $("#navDashboard").addEventListener("click", () => showTab("dashboard"));
-  $("#navFuel").addEventListener("click", () => showTab("fuel"));
-  $("#navCalc").addEventListener("click", () => showTab("calc"));
+function showFuel(){
+  showOnly("fuelScreen");
+  renderFuelScreen();
+}
+
+function showCalc(){
+  showOnly("calcScreen");
+  renderCalc();
+}
+
+function initNavigation(){
+  $("#goManutencoes").addEventListener("click", showMaintenance);
+  $("#goConsumo").addEventListener("click", showFuel);
+  $("#goCalculadora").addEventListener("click", showCalc);
+  $("#backFromManut").addEventListener("click", showHome);
+  $("#backFromFuel").addEventListener("click", showHome);
+  $("#backFromCalc").addEventListener("click", showHome);
 }
 
 /* ===================================================================
@@ -742,10 +763,10 @@ function init(){
   initEditVehicle();
   initFuelTab();
   initCalcTab();
-  initBottomNav();
+  initNavigation();
 
   if(state.onboarded){
-    showDashboard();
+    showHome();
   }else{
     renderOnboardingCategories();
     showOnboarding();

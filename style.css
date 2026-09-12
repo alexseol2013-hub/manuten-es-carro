@@ -151,7 +151,7 @@ body{
   display:flex; align-items:center; justify-content:space-between;
   padding: 20px 18px 6px;
 }
-.dash-scroll{ flex:1; padding-top: 14px; padding-bottom: 78px; }
+.dash-scroll{ flex:1; padding-top: 14px; padding-bottom: 20px; }
 
 .vehicle-card{ display:flex; justify-content:space-between; align-items:center; gap: 10px; }
 .vehicle-info h2{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin:2px 0 2px; }
@@ -207,22 +207,25 @@ body{
 
 .footer-space{ height: 30px; }
 
-/* ---------- bottom nav ---------- */
-.bottom-nav{
-  position: fixed; left:50%; transform: translateX(-50%); bottom:0;
-  width:100%; max-width:480px; display:flex;
-  background: var(--surface); border-top:1px solid var(--border);
-  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
-  z-index: 40;
+/* ---------- home menu ---------- */
+.menu-list{ display:flex; flex-direction:column; gap:10px; margin: 4px 18px 0; }
+.menu-card{
+  display:flex; align-items:center; gap:13px; text-align:left;
+  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius);
+  padding: 15px 16px; cursor:pointer; color: var(--text); width:100%;
 }
-.bottom-nav[hidden]{ display:none; }
-.nav-btn{
-  flex:1; background:none; border:none; color: var(--muted); cursor:pointer;
-  display:flex; flex-direction:column; align-items:center; gap:3px;
-  font-size:10.5px; font-weight:600; padding:5px 2px; border-radius:10px;
-}
-.nav-btn .nav-icon{ font-size:18px; }
-.nav-btn.active{ color: var(--amber); }
+.menu-card:active{ transform: scale(.98); }
+.menu-icon{ font-size:21px; width:40px; height:40px; border-radius:11px; background: var(--surface-2);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.menu-text{ flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; }
+.menu-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px; }
+.menu-sub{ font-size:12.5px; color: var(--muted); }
+.menu-chevron{ color: var(--muted); font-size:20px; flex-shrink:0; }
+
+/* ---------- screen headers with back button ---------- */
+.dash-head{ position:relative; }
+.screen-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15.5px; }
+
 
 /* ---------- fuel log ---------- */
 .fuel-avg-card{ display:flex; align-items:center; }
