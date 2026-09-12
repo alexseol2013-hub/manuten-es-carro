@@ -65,6 +65,7 @@ body{
   background:none; border:none; color: var(--amber); font-size: 12.5px;
   font-weight:600; margin-left:auto; cursor:pointer; padding:4px 0;
 }
+.link-btn-secondary{ margin-left:12px; color: var(--muted); }
 
 /* ---------- onboarding ---------- */
 .onb-head{ padding: 22px 20px 16px; }
@@ -281,6 +282,20 @@ body{
 .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; }
 .modal-head h3{ font-family:'Space Grotesk',sans-serif; font-size:16px; margin:0; }
 .modal-body .btn-primary{ margin-top: 8px; }
+.modal-tall .modal-body{ max-height: 62vh; overflow-y: auto; }
+
+/* ---------- km history ---------- */
+.km-history-list{ display:flex; flex-direction:column; gap:9px; }
+.km-history-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background: var(--surface-2); border-radius:10px; padding: 11px 13px;
+}
+.km-history-main{ display:flex; flex-direction:column; gap:2px; }
+.km-history-km{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14.5px; }
+.km-history-label{ font-size:11.5px; color: var(--muted); }
+.km-history-date{ font-size:11.5px; color: var(--muted); font-family:'JetBrains Mono',monospace; text-align:right; }
+.km-history-delta{ font-size:11px; color: var(--good); font-weight:600; }
+.empty-km-history{ text-align:center; color: var(--muted); font-size:13.5px; padding: 14px 6px; }
 
 .toast{
   position:fixed; left:50%; bottom: 26px; transform: translateX(-50%) translateY(12px);

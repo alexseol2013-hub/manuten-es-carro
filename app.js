@@ -48,6 +48,7 @@ function defaultState(){
     vehicle: { name: "", model: "", year: "", km: 0 },
     items: CATALOG.map(c => ({ ...c, done: false, lastDate: null, lastKm: null, custom: false })),
     fuelLogs: [],
+    kmHistory: [],
     points: 0,
     onboarded: false,
   };
@@ -63,12 +64,25 @@ function loadState(){
     CATALOG.forEach(c => {
       if(!existingIds.has(c.id)) parsed.items.push({ ...c, done:false, lastDate:null, lastKm:null, custom:false });
     });
-    // backward compatibility for users who saved before fuel log existed
+    // backward compatibility for users who saved before fuel log / km history existed
     if(!parsed.fuelLogs) parsed.fuelLogs = [];
+    if(!parsed.kmHistory){
+      parsed.kmHistory = [];
+      if(parsed.onboarded && parsed.vehicle && parsed.vehicle.km){
+        // seed a first entry so the history isn't empty for existing users
+        parsed.kmHistory.push({ date: new Date().toISOString().slice(0,10), km: parsed.vehicle.km, label: "Km inicial" });
+      }
+    }
     return parsed;
   }catch(e){
     return defaultState();
   }
+}
+
+function pushKmHistory(km, label){
+  const last = state.kmHistory[state.kmHistory.length - 1];
+  if(last && last.km === km) return; // avoid duplicate consecutive entries
+  state.kmHistory.push({ date: new Date().toISOString().slice(0,10), km, label });
 }
 
 function saveState(){
@@ -294,6 +308,7 @@ function initOnboardingFlow(){
     // award starting points for whatever history was filled in
     const filled = state.items.filter(i => i.done && (i.lastDate || i.lastKm != null)).length;
     state.points += filled * 10;
+    pushKmHistory(state.vehicle.km || 0, "Km inicial");
     saveState();
     showHome();
   });
@@ -521,6 +536,7 @@ function initKmUpdate(){
     if(num < current){ toast("A km não pode ser menor que a atual"); return; }
     state.vehicle.km = num;
     state.points += 2;
+    pushKmHistory(num, "Atualização manual");
     saveState();
     renderHome();
     renderMaintenance();
@@ -528,6 +544,48 @@ function initKmUpdate(){
   }
   $("#btnUpdateKm").addEventListener("click", promptKm);
   $("#btnQuickKm").addEventListener("click", promptKm);
+}
+
+/* ---------- km history ---------- */
+function renderKmHistory(){
+  const list = $("#kmHistoryList");
+  list.innerHTML = "";
+
+  if(state.kmHistory.length === 0){
+    list.innerHTML = `<div class="empty-km-history">Nenhum registro ainda. A KM inicial e cada atualização aparecem aqui.</div>`;
+    return;
+  }
+
+  const sorted = [...state.kmHistory].sort((a,b) => b.km - a.km);
+
+  sorted.forEach((entry, idx) => {
+    const older = sorted[idx + 1];
+    const delta = older ? entry.km - older.km : null;
+    const row = document.createElement("div");
+    row.className = "km-history-row";
+    row.innerHTML = `
+      <div class="km-history-main">
+        <span class="km-history-km">${entry.km.toLocaleString("pt-BR")} km</span>
+        <span class="km-history-label">${entry.label}</span>
+      </div>
+      <div>
+        <div class="km-history-date">${formatDateBR(entry.date)}</div>
+        ${delta ? `<div class="km-history-delta">+${delta.toLocaleString("pt-BR")} km</div>` : ''}
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function initKmHistoryModal(){
+  $("#btnKmHistory").addEventListener("click", () => {
+    renderKmHistory();
+    $("#kmHistoryBackdrop").hidden = false;
+  });
+  $("#kmHistoryClose").addEventListener("click", () => { $("#kmHistoryBackdrop").hidden = true; });
+  $("#kmHistoryBackdrop").addEventListener("click", (e) => {
+    if(e.target.id === "kmHistoryBackdrop") $("#kmHistoryBackdrop").hidden = true;
+  });
 }
 
 /* ---------- edit vehicle ---------- */
@@ -625,6 +683,7 @@ function saveFuelEntry(){
   });
 
   if(kmEnd > (state.vehicle.km || 0)) state.vehicle.km = kmEnd;
+  pushKmHistory(state.vehicle.km, `Abastecimento (${selectedFuelType})`);
   state.points += 8;
   saveState();
   toast("Abastecimento salvo");
@@ -768,6 +827,7 @@ function init(){
   initModal();
   initAddModal();
   initKmUpdate();
+  initKmHistoryModal();
   initEditVehicle();
   initFuelTab();
   initCalcTab();

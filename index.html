@@ -94,6 +94,7 @@
             <span id="vKm" class="odo-value">0</span>
             <span class="odo-unit">km</span>
             <button class="link-btn" id="btnUpdateKm">atualizar</button>
+            <button class="link-btn link-btn-secondary" id="btnKmHistory">histórico</button>
           </div>
         </div>
         <div class="gauge-wrap">
@@ -354,6 +355,19 @@
         </label>
       </div>
       <button class="btn-primary" id="addSave">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== KM HISTORY MODAL ===================== -->
+<div class="modal-backdrop" id="kmHistoryBackdrop" hidden>
+  <div class="modal modal-tall">
+    <div class="modal-head">
+      <h3>Histórico de quilometragem</h3>
+      <button class="icon-btn" id="kmHistoryClose" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="kmHistoryList" class="km-history-list"></div>
     </div>
   </div>
 </div>
