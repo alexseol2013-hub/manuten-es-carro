@@ -297,6 +297,20 @@ body{
 .km-history-delta{ font-size:11px; color: var(--good); font-weight:600; }
 .empty-km-history{ text-align:center; color: var(--muted); font-size:13.5px; padding: 14px 6px; }
 
+/* ---------- settings ---------- */
+.settings-list{ display:flex; flex-direction:column; gap:9px; }
+.settings-row{
+  display:flex; align-items:center; gap:13px; text-align:left; width:100%;
+  background: var(--surface-2); border:1px solid var(--border); border-radius: 12px;
+  padding: 13px 14px; cursor:pointer; color: var(--text);
+}
+.settings-row:active{ transform: scale(.98); }
+.settings-row-icon{ font-size:19px; width:36px; height:36px; border-radius:9px; background: var(--surface);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.settings-row-text{ display:flex; flex-direction:column; gap:2px; }
+.settings-row-title{ font-weight:600; font-size:14px; }
+.settings-row-sub{ font-size:11.5px; color: var(--muted); }
+
 .toast{
   position:fixed; left:50%; bottom: 26px; transform: translateX(-50%) translateY(12px);
   background: var(--surface-2); border:1px solid var(--border); color: var(--text);

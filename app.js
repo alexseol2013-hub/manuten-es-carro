@@ -49,6 +49,7 @@ function defaultState(){
     items: CATALOG.map(c => ({ ...c, done: false, lastDate: null, lastKm: null, custom: false })),
     fuelLogs: [],
     kmHistory: [],
+    maintenanceHistory: [],
     points: 0,
     onboarded: false,
   };
@@ -66,6 +67,12 @@ function loadState(){
     });
     // backward compatibility for users who saved before fuel log / km history existed
     if(!parsed.fuelLogs) parsed.fuelLogs = [];
+    if(!parsed.maintenanceHistory){
+      // seed from whatever is currently recorded on each item, so existing users don't start empty-handed
+      parsed.maintenanceHistory = parsed.items
+        .filter(i => i.lastDate || i.lastKm != null)
+        .map(i => ({ itemId: i.id, itemName: i.name, category: i.category, date: i.lastDate, km: i.lastKm }));
+    }
     if(!parsed.kmHistory){
       parsed.kmHistory = [];
       if(parsed.onboarded && parsed.vehicle && parsed.vehicle.km){
@@ -83,6 +90,19 @@ function pushKmHistory(km, label){
   const last = state.kmHistory[state.kmHistory.length - 1];
   if(last && last.km === km) return; // avoid duplicate consecutive entries
   state.kmHistory.push({ date: new Date().toISOString().slice(0,10), km, label });
+}
+
+function pushMaintenanceHistory(item){
+  const entriesForItem = state.maintenanceHistory.filter(h => h.itemId === item.id);
+  const last = entriesForItem[entriesForItem.length - 1];
+  if(last && last.date === item.lastDate && last.km === item.lastKm) return; // avoid duplicate consecutive entries
+  state.maintenanceHistory.push({
+    itemId: item.id,
+    itemName: item.name,
+    category: item.category,
+    date: item.lastDate,
+    km: item.lastKm,
+  });
 }
 
 function saveState(){
@@ -306,8 +326,9 @@ function initOnboardingFlow(){
   $("#btnFinishOnboarding").addEventListener("click", () => {
     state.onboarded = true;
     // award starting points for whatever history was filled in
-    const filled = state.items.filter(i => i.done && (i.lastDate || i.lastKm != null)).length;
-    state.points += filled * 10;
+    const trackedItems = state.items.filter(i => i.done && (i.lastDate || i.lastKm != null));
+    state.points += trackedItems.length * 10;
+    trackedItems.forEach(pushMaintenanceHistory);
     pushKmHistory(state.vehicle.km || 0, "Km inicial");
     saveState();
     showHome();
@@ -475,6 +496,7 @@ function initModal(){
     item.lastDate = $("#modalDate").value || null;
     item.lastKm = $("#modalKm").value ? Number($("#modalKm").value) : null;
     item.done = true;
+    if(item.lastDate || item.lastKm != null) pushMaintenanceHistory(item);
     if(!wasTracked && (item.lastDate || item.lastKm != null)) state.points += 10;
     else state.points += 5;
     saveState();
@@ -588,9 +610,54 @@ function initKmHistoryModal(){
   });
 }
 
+/* ---------- maintenance history ---------- */
+function renderMaintenanceHistory(){
+  const list = $("#maintHistoryList");
+  list.innerHTML = "";
+
+  if(state.maintenanceHistory.length === 0){
+    list.innerHTML = `<div class="empty-km-history">Nenhum registro ainda. Cada vez que você marcar uma manutenção como feita, ela aparece aqui.</div>`;
+    return;
+  }
+
+  // most recent first — sort by date, falling back to insertion order for same-day entries
+  const sorted = [...state.maintenanceHistory]
+    .map((entry, idx) => ({ entry, idx }))
+    .sort((a, b) => {
+      const dateCompare = (b.entry.date || "").localeCompare(a.entry.date || "");
+      return dateCompare !== 0 ? dateCompare : b.idx - a.idx;
+    })
+    .map(x => x.entry);
+
+  sorted.forEach(entry => {
+    const row = document.createElement("div");
+    row.className = "km-history-row";
+    row.innerHTML = `
+      <div class="km-history-main">
+        <span class="km-history-km">${entry.itemName}</span>
+        <span class="km-history-label">${entry.category}${entry.km != null ? ` · ${entry.km.toLocaleString("pt-BR")} km` : ''}</span>
+      </div>
+      <div class="km-history-date">${entry.date ? formatDateBR(entry.date) : '—'}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function initMaintHistoryModal(){
+  $("#btnMaintHistory").addEventListener("click", () => {
+    renderMaintenanceHistory();
+    $("#maintHistoryBackdrop").hidden = false;
+  });
+  $("#maintHistoryClose").addEventListener("click", () => { $("#maintHistoryBackdrop").hidden = true; });
+  $("#maintHistoryBackdrop").addEventListener("click", (e) => {
+    if(e.target.id === "maintHistoryBackdrop") $("#maintHistoryBackdrop").hidden = true;
+  });
+}
+
 /* ---------- edit vehicle ---------- */
 function initEditVehicle(){
   $("#btnEditVehicle").addEventListener("click", () => {
+    $("#settingsBackdrop").hidden = true;
     const model = window.prompt("Modelo do carro:", state.vehicle.model || "");
     if(model === null) return;
     const year = window.prompt("Ano:", state.vehicle.year || "");
@@ -599,6 +666,68 @@ function initEditVehicle(){
     saveState();
     renderHome();
   });
+}
+
+/* ---------- settings / export / import ---------- */
+function initSettings(){
+  $("#btnSettings").addEventListener("click", () => { $("#settingsBackdrop").hidden = false; });
+  $("#settingsClose").addEventListener("click", () => { $("#settingsBackdrop").hidden = true; });
+  $("#settingsBackdrop").addEventListener("click", (e) => {
+    if(e.target.id === "settingsBackdrop") $("#settingsBackdrop").hidden = true;
+  });
+
+  $("#btnExportData").addEventListener("click", exportData);
+
+  $("#btnImportData").addEventListener("click", () => {
+    $("#importFileInput").click();
+  });
+  $("#importFileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => importData(reader.result);
+    reader.readAsText(file);
+    e.target.value = ""; // allow re-selecting the same file later
+  });
+}
+
+function exportData(){
+  const dateStr = new Date().toISOString().slice(0,10);
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `garagem-zero-backup-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast("Backup baixado");
+}
+
+function importData(text){
+  let parsed;
+  try{
+    parsed = JSON.parse(text);
+  }catch(e){
+    toast("Arquivo inválido");
+    return;
+  }
+  if(!parsed || !parsed.vehicle || !Array.isArray(parsed.items)){
+    toast("Esse arquivo não parece ser um backup do Garagem Zero");
+    return;
+  }
+  const ok = window.confirm("Isso substitui todos os dados atuais pelos do backup. Continuar?");
+  if(!ok) return;
+
+  state = parsed;
+  if(!state.fuelLogs) state.fuelLogs = [];
+  if(!state.kmHistory) state.kmHistory = [];
+  if(!state.maintenanceHistory) state.maintenanceHistory = [];
+  saveState();
+  $("#settingsBackdrop").hidden = true;
+  showHome();
+  toast("Dados restaurados");
 }
 
 /* ===================================================================
@@ -828,7 +957,9 @@ function init(){
   initAddModal();
   initKmUpdate();
   initKmHistoryModal();
+  initMaintHistoryModal();
   initEditVehicle();
+  initSettings();
   initFuelTab();
   initCalcTab();
   initNavigation();

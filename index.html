@@ -78,7 +78,7 @@
         <span class="brand-mark">GZ</span>
         <span class="brand-name">Garagem Zero</span>
       </div>
-      <button class="icon-btn" id="btnEditVehicle" title="Editar veículo" aria-label="Editar veículo">⚙</button>
+      <button class="icon-btn" id="btnSettings" title="Configurações" aria-label="Configurações">⚙</button>
     </header>
 
     <div class="dash-scroll">
@@ -186,6 +186,7 @@
       <!-- maintenance categories -->
       <div class="section-title-row top-gap">
         <p class="section-title">Categorias</p>
+        <button class="link-btn" id="btnMaintHistory">histórico</button>
       </div>
       <div id="dashCategories" class="cat-list"></div>
 
@@ -368,6 +369,53 @@
     </div>
     <div class="modal-body">
       <div id="kmHistoryList" class="km-history-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MAINTENANCE HISTORY MODAL ===================== -->
+<div class="modal-backdrop" id="maintHistoryBackdrop" hidden>
+  <div class="modal modal-tall">
+    <div class="modal-head">
+      <h3>Histórico de manutenções</h3>
+      <button class="icon-btn" id="maintHistoryClose" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="maintHistoryList" class="km-history-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SETTINGS MODAL ===================== -->
+<div class="modal-backdrop" id="settingsBackdrop" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Configurações</h3>
+      <button class="icon-btn" id="settingsClose" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body settings-list">
+      <button class="settings-row" id="btnEditVehicle">
+        <span class="settings-row-icon">🚗</span>
+        <span class="settings-row-text">
+          <span class="settings-row-title">Editar veículo</span>
+          <span class="settings-row-sub">Modelo e ano</span>
+        </span>
+      </button>
+      <button class="settings-row" id="btnExportData">
+        <span class="settings-row-icon">⬇️</span>
+        <span class="settings-row-text">
+          <span class="settings-row-title">Exportar dados</span>
+          <span class="settings-row-sub">Baixa um arquivo de backup</span>
+        </span>
+      </button>
+      <button class="settings-row" id="btnImportData">
+        <span class="settings-row-icon">⬆️</span>
+        <span class="settings-row-text">
+          <span class="settings-row-title">Importar dados</span>
+          <span class="settings-row-sub">Restaura a partir de um backup</span>
+        </span>
+      </button>
+      <input type="file" id="importFileInput" accept="application/json,.json" hidden>
     </div>
   </div>
 </div>
