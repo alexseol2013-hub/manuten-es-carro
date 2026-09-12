@@ -32,6 +32,7 @@ body{
 }
 
 .screen{ min-height: 100vh; display:flex; flex-direction:column; }
+.screen[hidden]{ display:none; }
 
 /* ---------- shared ---------- */
 .brand{ display:flex; align-items:center; gap:8px; }
