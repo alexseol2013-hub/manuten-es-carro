@@ -79,6 +79,14 @@ function saveState(){
 function $(sel){ return document.querySelector(sel); }
 function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
 
+// Aceita tanto "6,20" quanto "6.20" (o teclado numérico do Android costuma
+// bloquear a vírgula em campos type=number, então esses campos viraram texto
+// e essa função normaliza o que a pessoa digitar).
+function toNumber(str){
+  if(str == null || str === "") return NaN;
+  return Number(String(str).replace(",", "."));
+}
+
 function monthsBetween(dateStr){
   if(!dateStr) return null;
   const then = new Date(dateStr);
@@ -577,7 +585,7 @@ function setFuelType(type){
 function updateFuelPreview(){
   const kmStart = Number($("#fuelKmStart").value);
   const kmEnd = Number($("#fuelKmEnd").value);
-  const liters = Number($("#fuelLiters").value);
+  const liters = toNumber($("#fuelLiters").value);
   const preview = $("#fuelPreview");
 
   if(kmStart && kmEnd && liters && kmEnd > kmStart){
@@ -603,8 +611,8 @@ function prefillFuelForm(){
 function saveFuelEntry(){
   const kmStart = Number($("#fuelKmStart").value);
   const kmEnd = Number($("#fuelKmEnd").value);
-  const liters = Number($("#fuelLiters").value);
-  const price = $("#fuelPrice").value ? Number($("#fuelPrice").value) : null;
+  const liters = toNumber($("#fuelLiters").value);
+  const price = $("#fuelPrice").value ? toNumber($("#fuelPrice").value) : null;
 
   if(!kmStart || !kmEnd || kmEnd <= kmStart){ toast("Confira o km inicial e final"); return; }
   if(!liters || liters <= 0){ toast("Informe os litros abastecidos"); return; }
@@ -673,8 +681,8 @@ function initCalcTab(){
 }
 
 function renderCalc(){
-  const priceAlcool = Number($("#calcPriceAlcool").value);
-  const priceGasolina = Number($("#calcPriceGasolina").value);
+  const priceAlcool = toNumber($("#calcPriceAlcool").value);
+  const priceGasolina = toNumber($("#calcPriceGasolina").value);
   const card = $("#calcResultCard");
   const label = $("#calcResultLabel");
   const winner = $("#calcResultWinner");
