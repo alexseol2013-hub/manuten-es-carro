@@ -47,6 +47,7 @@ function defaultState(){
   return {
     vehicle: { name: "", model: "", year: "", km: 0 },
     items: CATALOG.map(c => ({ ...c, done: false, lastDate: null, lastKm: null, custom: false })),
+    fuelLogs: [],
     points: 0,
     onboarded: false,
   };
@@ -62,6 +63,8 @@ function loadState(){
     CATALOG.forEach(c => {
       if(!existingIds.has(c.id)) parsed.items.push({ ...c, done:false, lastDate:null, lastKm:null, custom:false });
     });
+    // backward compatibility for users who saved before fuel log existed
+    if(!parsed.fuelLogs) parsed.fuelLogs = [];
     return parsed;
   }catch(e){
     return defaultState();
@@ -519,17 +522,213 @@ function initEditVehicle(){
 }
 
 /* ===================================================================
+   FUEL LOG
+=================================================================== */
+let selectedFuelType = "Álcool";
+
+function fuelLogsFor(type){
+  return state.fuelLogs.filter(l => l.fuelType === type);
+}
+
+function averageKmPerLiter(type){
+  const logs = fuelLogsFor(type);
+  if(logs.length === 0) return null;
+  const totalKm = logs.reduce((sum, l) => sum + (l.kmEnd - l.kmStart), 0);
+  const totalLiters = logs.reduce((sum, l) => sum + l.liters, 0);
+  if(totalLiters <= 0) return null;
+  return totalKm / totalLiters;
+}
+
+function initFuelTab(){
+  $("#btnFuelAlcool").addEventListener("click", () => setFuelType("Álcool"));
+  $("#btnFuelGasolina").addEventListener("click", () => setFuelType("Gasolina"));
+
+  const kmStartInput = $("#fuelKmStart");
+  const kmEndInput = $("#fuelKmEnd");
+  const litersInput = $("#fuelLiters");
+
+  [kmStartInput, kmEndInput, litersInput].forEach(inp => {
+    inp.addEventListener("input", updateFuelPreview);
+  });
+
+  $("#btnSaveFuel").addEventListener("click", saveFuelEntry);
+}
+
+function setFuelType(type){
+  selectedFuelType = type;
+  $("#btnFuelAlcool").classList.toggle("active", type === "Álcool");
+  $("#btnFuelGasolina").classList.toggle("active", type === "Gasolina");
+}
+
+function updateFuelPreview(){
+  const kmStart = Number($("#fuelKmStart").value);
+  const kmEnd = Number($("#fuelKmEnd").value);
+  const liters = Number($("#fuelLiters").value);
+  const preview = $("#fuelPreview");
+
+  if(kmStart && kmEnd && liters && kmEnd > kmStart){
+    const kml = (kmEnd - kmStart) / liters;
+    preview.textContent = `${(kmEnd-kmStart).toLocaleString("pt-BR")} km rodados → média de ${kml.toFixed(2)} km/l`;
+    preview.classList.add("ready");
+  }else{
+    preview.textContent = "";
+    preview.classList.remove("ready");
+  }
+}
+
+function prefillFuelForm(){
+  const lastEntry = [...state.fuelLogs].sort((a,b) => b.kmEnd - a.kmEnd)[0];
+  const startKm = lastEntry ? lastEntry.kmEnd : (state.vehicle.km || "");
+  $("#fuelKmStart").value = startKm;
+  $("#fuelKmEnd").value = state.vehicle.km || "";
+  $("#fuelLiters").value = "";
+  $("#fuelPrice").value = "";
+  updateFuelPreview();
+}
+
+function saveFuelEntry(){
+  const kmStart = Number($("#fuelKmStart").value);
+  const kmEnd = Number($("#fuelKmEnd").value);
+  const liters = Number($("#fuelLiters").value);
+  const price = $("#fuelPrice").value ? Number($("#fuelPrice").value) : null;
+
+  if(!kmStart || !kmEnd || kmEnd <= kmStart){ toast("Confira o km inicial e final"); return; }
+  if(!liters || liters <= 0){ toast("Informe os litros abastecidos"); return; }
+
+  state.fuelLogs.push({
+    id: "fuel_" + Date.now(),
+    fuelType: selectedFuelType,
+    kmStart, kmEnd, liters, price,
+    date: new Date().toISOString().slice(0,10),
+  });
+
+  if(kmEnd > (state.vehicle.km || 0)) state.vehicle.km = kmEnd;
+  state.points += 8;
+  saveState();
+  toast("Abastecimento salvo");
+  renderFuelScreen();
+  renderDashboard();
+}
+
+function renderFuelScreen(){
+  $("#avgAlcool").textContent = fmtKml(averageKmPerLiter("Álcool"));
+  $("#avgGasolina").textContent = fmtKml(averageKmPerLiter("Gasolina"));
+  prefillFuelForm();
+
+  const list = $("#fuelHistory");
+  list.innerHTML = "";
+  const sorted = [...state.fuelLogs].sort((a,b) => b.kmEnd - a.kmEnd);
+
+  if(sorted.length === 0){
+    list.innerHTML = `<div class="empty-fuel">Nenhum abastecimento registrado ainda.</div>`;
+    return;
+  }
+
+  sorted.forEach(log => {
+    const kml = (log.kmEnd - log.kmStart) / log.liters;
+    const row = document.createElement("div");
+    row.className = "fuel-entry";
+    row.innerHTML = `
+      <div class="fuel-entry-badge ${log.fuelType === 'Álcool' ? 'alcool' : 'gasolina'}">${log.fuelType === 'Álcool' ? '🌿' : '⛽'}</div>
+      <div class="fuel-entry-main">
+        <div class="fuel-entry-top">
+          <span class="fuel-entry-fuel">${log.fuelType}</span>
+          <span class="fuel-entry-date">${formatDateBR(log.date)}</span>
+        </div>
+        <div class="fuel-entry-detail">${(log.kmEnd-log.kmStart).toLocaleString("pt-BR")} km · ${log.liters.toLocaleString("pt-BR")} l${log.price ? ` · R$ ${log.price.toFixed(2)}/l` : ''}</div>
+      </div>
+      <div class="fuel-entry-kml">${kml.toFixed(1)}<br><small style="font-weight:400;color:var(--muted);">km/l</small></div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function fmtKml(v){ return v ? v.toFixed(1) : "—"; }
+
+function formatDateBR(dateStr){
+  const [y,m,d] = dateStr.split("-");
+  return `${d}/${m}/${y.slice(2)}`;
+}
+
+/* ===================================================================
+   CALCULATOR — álcool ou gasolina
+=================================================================== */
+function initCalcTab(){
+  $("#calcPriceAlcool").addEventListener("input", renderCalc);
+  $("#calcPriceGasolina").addEventListener("input", renderCalc);
+}
+
+function renderCalc(){
+  const priceAlcool = Number($("#calcPriceAlcool").value);
+  const priceGasolina = Number($("#calcPriceGasolina").value);
+  const card = $("#calcResultCard");
+  const label = $("#calcResultLabel");
+  const winner = $("#calcResultWinner");
+  const detail = $("#calcResultDetail");
+  const explainer = $("#calcExplainer");
+
+  const avgAlcool = averageKmPerLiter("Álcool");
+  const avgGasolina = averageKmPerLiter("Gasolina");
+  const usingRealData = avgAlcool && avgGasolina;
+  const ratio = usingRealData ? (avgAlcool / avgGasolina) : 0.7;
+
+  if(!priceAlcool || !priceGasolina){
+    label.textContent = "Preencha os dois preços";
+    winner.textContent = "—";
+    detail.textContent = "";
+  }else{
+    const costAlcoolPerKm = avgAlcool ? priceAlcool / avgAlcool : priceAlcool / (avgGasolina ? avgGasolina * 0.7 : 10 * 0.7);
+    const costGasolinaPerKm = avgGasolina ? priceGasolina / avgGasolina : priceGasolina / 10;
+    const alcoolCompensa = (priceAlcool / priceGasolina) <= ratio;
+
+    label.textContent = usingRealData ? "Com base na sua média real de consumo" : "Estimativa (ainda sem sua média registrada)";
+    winner.textContent = alcoolCompensa ? "Álcool compensa mais" : "Gasolina compensa mais";
+    winner.style.color = alcoolCompensa ? "var(--good)" : "var(--warn)";
+
+    const breakeven = (priceGasolina * ratio).toFixed(2);
+    detail.textContent = `Pelo seu preço, o álcool só compensa se custar até R$ ${breakeven} — hoje ele está a ${(priceAlcool/priceGasolina*100).toFixed(0)}% do preço da gasolina.`;
+  }
+
+  if(usingRealData){
+    explainer.textContent = `Com a sua média real (${avgAlcool.toFixed(1)} km/l no álcool e ${avgGasolina.toFixed(1)} km/l na gasolina), o álcool compensa enquanto custar até ${(ratio*100).toFixed(0)}% do preço da gasolina no seu carro.`;
+  }else{
+    explainer.textContent = `Sem abastecimentos registrados dos dois combustíveis ainda, usamos a regra geral: o álcool rende cerca de 30% menos que a gasolina, então ele só compensa se custar até 70% do preço dela. Registre alguns abastecimentos de cada tipo na aba Consumo para um cálculo com o desempenho real do seu carro.`;
+  }
+}
+
+/* ===================================================================
    SCREEN SWITCHING
 =================================================================== */
 function showOnboarding(){
   $("#onboarding").hidden = false;
   $("#dashboard").hidden = true;
+  $("#fuelScreen").hidden = true;
+  $("#calcScreen").hidden = true;
+  $("#bottomNav").hidden = true;
 }
 
 function showDashboard(){
   $("#onboarding").hidden = true;
-  $("#dashboard").hidden = false;
-  renderDashboard();
+  $("#bottomNav").hidden = false;
+  showTab("dashboard");
+}
+
+function showTab(tab){
+  $("#dashboard").hidden = tab !== "dashboard";
+  $("#fuelScreen").hidden = tab !== "fuel";
+  $("#calcScreen").hidden = tab !== "calc";
+
+  $all(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === tab));
+
+  if(tab === "dashboard") renderDashboard();
+  if(tab === "fuel") renderFuelScreen();
+  if(tab === "calc") renderCalc();
+}
+
+function initBottomNav(){
+  $("#navDashboard").addEventListener("click", () => showTab("dashboard"));
+  $("#navFuel").addEventListener("click", () => showTab("fuel"));
+  $("#navCalc").addEventListener("click", () => showTab("calc"));
 }
 
 /* ===================================================================
@@ -541,6 +740,9 @@ function init(){
   initAddModal();
   initKmUpdate();
   initEditVehicle();
+  initFuelTab();
+  initCalcTab();
+  initBottomNav();
 
   if(state.onboarded){
     showDashboard();

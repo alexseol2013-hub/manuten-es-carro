@@ -150,6 +150,136 @@
     </div>
   </section>
 
+  <!-- ===================== FUEL LOG ===================== -->
+  <section id="fuelScreen" class="screen" hidden>
+    <header class="dash-head">
+      <div class="brand">
+        <span class="brand-mark">GZ</span>
+        <span class="brand-name">Abastecimentos</span>
+      </div>
+    </header>
+
+    <div class="dash-scroll">
+
+      <!-- averages -->
+      <div class="card fuel-avg-card">
+        <div class="fuel-avg-col">
+          <p class="label">Álcool</p>
+          <p class="fuel-avg-value" id="avgAlcool">—</p>
+          <p class="muted">km/l médio</p>
+        </div>
+        <div class="fuel-avg-divider"></div>
+        <div class="fuel-avg-col">
+          <p class="label">Gasolina</p>
+          <p class="fuel-avg-value" id="avgGasolina">—</p>
+          <p class="muted">km/l médio</p>
+        </div>
+      </div>
+
+      <!-- add entry -->
+      <div class="card">
+        <p class="section-title" style="margin-bottom:12px;">Novo abastecimento</p>
+
+        <div class="fuel-type-toggle">
+          <button class="fuel-type-btn active" data-fuel="Álcool" id="btnFuelAlcool">Álcool</button>
+          <button class="fuel-type-btn" data-fuel="Gasolina" id="btnFuelGasolina">Gasolina</button>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>KM inicial</span>
+            <input type="number" id="fuelKmStart" inputmode="numeric">
+          </label>
+          <label class="field">
+            <span>KM final</span>
+            <input type="number" id="fuelKmEnd" inputmode="numeric">
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Litros abastecidos</span>
+            <input type="number" id="fuelLiters" inputmode="decimal" placeholder="Ex: 32.5">
+          </label>
+          <label class="field">
+            <span>Preço por litro (opcional)</span>
+            <input type="number" id="fuelPrice" inputmode="decimal" placeholder="Ex: 4.29">
+          </label>
+        </div>
+
+        <p class="fuel-preview" id="fuelPreview"></p>
+
+        <button class="btn-primary" id="btnSaveFuel">Salvar abastecimento</button>
+      </div>
+
+      <!-- history -->
+      <div class="section-title-row top-gap">
+        <p class="section-title">Histórico</p>
+      </div>
+      <div id="fuelHistory" class="fuel-history"></div>
+
+      <div class="footer-space"></div>
+    </div>
+  </section>
+
+  <!-- ===================== FUEL CALCULATOR ===================== -->
+  <section id="calcScreen" class="screen" hidden>
+    <header class="dash-head">
+      <div class="brand">
+        <span class="brand-mark">GZ</span>
+        <span class="brand-name">Álcool ou gasolina?</span>
+      </div>
+    </header>
+
+    <div class="dash-scroll">
+
+      <div class="card">
+        <p class="section-title" style="margin-bottom:4px;">Preço no posto</p>
+        <p class="muted" style="margin-bottom:14px;">Coloca o valor de cada um pra gente calcular o que compensa mais.</p>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Álcool (R$/l)</span>
+            <input type="number" id="calcPriceAlcool" inputmode="decimal" placeholder="Ex: 3.89">
+          </label>
+          <label class="field">
+            <span>Gasolina (R$/l)</span>
+            <input type="number" id="calcPriceGasolina" inputmode="decimal" placeholder="Ex: 5.79">
+          </label>
+        </div>
+      </div>
+
+      <div class="card calc-result-card" id="calcResultCard">
+        <p class="label" id="calcResultLabel">Preencha os dois preços</p>
+        <h2 id="calcResultWinner">—</h2>
+        <p class="muted" id="calcResultDetail"></p>
+      </div>
+
+      <div class="card">
+        <p class="section-title" style="margin-bottom:8px;">Como calculamos</p>
+        <p class="calc-explainer" id="calcExplainer"></p>
+      </div>
+
+      <div class="footer-space"></div>
+    </div>
+  </section>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <nav class="bottom-nav" id="bottomNav" hidden>
+    <button class="nav-btn active" data-screen="dashboard" id="navDashboard">
+      <span class="nav-icon">🏠</span>
+      <span>Painel</span>
+    </button>
+    <button class="nav-btn" data-screen="fuel" id="navFuel">
+      <span class="nav-icon">⛽</span>
+      <span>Consumo</span>
+    </button>
+    <button class="nav-btn" data-screen="calc" id="navCalc">
+      <span class="nav-icon">🧮</span>
+      <span>Álcool x Gasolina</span>
+    </button>
+  </nav>
+
 </div>
 
 <!-- ===================== EDIT ITEM MODAL ===================== -->

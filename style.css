@@ -151,7 +151,7 @@ body{
   display:flex; align-items:center; justify-content:space-between;
   padding: 20px 18px 6px;
 }
-.dash-scroll{ flex:1; padding-top: 14px; }
+.dash-scroll{ flex:1; padding-top: 14px; padding-bottom: 78px; }
 
 .vehicle-card{ display:flex; justify-content:space-between; align-items:center; gap: 10px; }
 .vehicle-info h2{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin:2px 0 2px; }
@@ -206,6 +206,63 @@ body{
 .quick-icon{ font-size:18px; }
 
 .footer-space{ height: 30px; }
+
+/* ---------- bottom nav ---------- */
+.bottom-nav{
+  position: fixed; left:50%; transform: translateX(-50%); bottom:0;
+  width:100%; max-width:480px; display:flex;
+  background: var(--surface); border-top:1px solid var(--border);
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  z-index: 40;
+}
+.bottom-nav[hidden]{ display:none; }
+.nav-btn{
+  flex:1; background:none; border:none; color: var(--muted); cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  font-size:10.5px; font-weight:600; padding:5px 2px; border-radius:10px;
+}
+.nav-btn .nav-icon{ font-size:18px; }
+.nav-btn.active{ color: var(--amber); }
+
+/* ---------- fuel log ---------- */
+.fuel-avg-card{ display:flex; align-items:center; }
+.fuel-avg-col{ flex:1; text-align:center; }
+.fuel-avg-value{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; margin: 2px 0; }
+.fuel-avg-divider{ width:1px; align-self:stretch; background: var(--border); margin: 0 10px; }
+
+.fuel-type-toggle{ display:flex; gap:8px; margin-bottom:14px; }
+.fuel-type-btn{
+  flex:1; padding:10px; border-radius:10px; border:1px solid var(--border);
+  background: var(--surface-2); color: var(--text); font-weight:600; font-size:13.5px; cursor:pointer;
+}
+.fuel-type-btn.active{ background: linear-gradient(135deg, var(--amber), #d98a10); border-color: transparent; color:#191204; }
+
+.fuel-preview{ font-size:12.5px; color: var(--muted); margin: 2px 0 12px; min-height: 16px; }
+.fuel-preview.ready{ color: var(--good); font-weight:600; }
+
+.fuel-history{ display:flex; flex-direction:column; gap:10px; margin: 0 18px; }
+.fuel-entry{
+  background: var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding: 13px 15px; display:flex; align-items:center; gap:12px;
+}
+.fuel-entry-badge{
+  width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:16px; flex-shrink:0;
+}
+.fuel-entry-badge.alcool{ background: rgba(55,214,122,.15); }
+.fuel-entry-badge.gasolina{ background: rgba(245,165,36,.15); }
+.fuel-entry-main{ flex:1; min-width:0; }
+.fuel-entry-top{ display:flex; justify-content:space-between; gap:8px; }
+.fuel-entry-fuel{ font-weight:600; font-size:14px; }
+.fuel-entry-date{ font-size:11.5px; color: var(--muted); font-family:'JetBrains Mono',monospace; }
+.fuel-entry-detail{ font-size:12.5px; color: var(--muted); margin-top:2px; }
+.fuel-entry-kml{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14px; flex-shrink:0; }
+.empty-fuel{ text-align:center; color: var(--muted); font-size:13.5px; padding: 18px 10px; }
+
+/* ---------- calculator ---------- */
+.calc-result-card{ text-align:center; }
+.calc-result-card h2{ font-family:'Space Grotesk',sans-serif; font-size:22px; margin: 4px 0 6px; }
+.calc-explainer{ font-size:13px; color: var(--muted); line-height:1.55; margin:0; }
 
 /* ---------- modal ---------- */
 .modal-backdrop{
