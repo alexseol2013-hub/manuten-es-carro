@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Garagem Zero — painel de manutenção</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ===================== ONBOARDING ===================== -->
+  <section id="onboarding" class="screen" hidden>
+    <header class="onb-head">
+      <div class="brand">
+        <span class="brand-mark">GZ</span>
+        <span class="brand-name">Garagem Zero</span>
+      </div>
+      <p class="onb-step" id="onbStepLabel">Passo 1 de 2 · Seu carro</p>
+      <div class="progress"><div class="progress-fill" id="onbProgress" style="width:50%"></div></div>
+    </header>
+
+    <div class="onb-body">
+
+      <!-- step 1 -->
+      <div class="onb-step-panel" id="onbStep1">
+        <h1>De quem é esse carro?</h1>
+        <p class="onb-sub">Só o essencial pra montar seu painel. Você ajusta tudo depois.</p>
+
+        <label class="field">
+          <span>Seu nome</span>
+          <input type="text" id="inpName" placeholder="Como podemos te chamar" autocomplete="off">
+        </label>
+
+        <label class="field">
+          <span>Modelo do carro</span>
+          <input type="text" id="inpModel" placeholder="Ex: Gol 1.6, HB20 1.0, Corolla" autocomplete="off">
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Ano</span>
+            <input type="number" id="inpYear" placeholder="2018" inputmode="numeric">
+          </label>
+          <label class="field">
+            <span>KM atual</span>
+            <input type="number" id="inpKm" placeholder="45000" inputmode="numeric">
+          </label>
+        </div>
+
+        <button class="btn-primary" id="btnToStep2">Continuar</button>
+      </div>
+
+      <!-- step 2 -->
+      <div class="onb-step-panel" id="onbStep2" hidden>
+        <h1>Histórico de manutenções</h1>
+        <p class="onb-sub">Marque o que já foi feito. Pode pular o que não souber — o painel se ajusta conforme você for atualizando.</p>
+
+        <div id="onbCategories" class="cat-list"></div>
+
+        <div class="onb-actions">
+          <button class="btn-ghost" id="btnBackStep1">Voltar</button>
+          <button class="btn-primary" id="btnFinishOnboarding">Montar meu painel</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <section id="dashboard" class="screen" hidden>
+
+    <header class="dash-head">
+      <div class="brand">
+        <span class="brand-mark">GZ</span>
+        <span class="brand-name">Garagem Zero</span>
+      </div>
+      <button class="icon-btn" id="btnEditVehicle" title="Editar veículo" aria-label="Editar veículo">⚙</button>
+    </header>
+
+    <div class="dash-scroll">
+
+      <!-- vehicle + gauge card -->
+      <div class="card vehicle-card">
+        <div class="vehicle-info">
+          <p class="label">Seu veículo</p>
+          <h2 id="vModel">—</h2>
+          <p class="muted" id="vYear">—</p>
+          <div class="odo" id="vKmRow">
+            <svg viewBox="0 0 24 24" class="odo-icon"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z"/><path d="M12.7 11.3 16 8l-3.3 5.7a1.5 1.5 0 0 1-2 .6 1.5 1.5 0 0 1-.6-2Z"/></svg>
+            <span id="vKm" class="odo-value">0</span>
+            <span class="odo-unit">km</span>
+            <button class="link-btn" id="btnUpdateKm">atualizar</button>
+          </div>
+        </div>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 120 70" class="gauge">
+            <path d="M10 65 A 50 50 0 0 1 110 65" class="gauge-track"/>
+            <path d="M10 65 A 50 50 0 0 1 110 65" class="gauge-fill" id="gaugeFill"/>
+          </svg>
+          <div class="gauge-value">
+            <span id="gaugeNumber">100</span>
+            <small>saúde</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- driver level -->
+      <div class="card level-card">
+        <div class="level-top">
+          <p class="label">Nível de cuidado</p>
+          <p class="level-points"><span id="levelPoints">0</span> pontos</p>
+        </div>
+        <h3 id="levelName">Iniciante</h3>
+        <div class="level-bar"><div class="level-bar-fill" id="levelBarFill" style="width:0%"></div></div>
+        <p class="level-sub" id="levelSub">100 pts para o próximo nível</p>
+      </div>
+
+      <!-- reminders -->
+      <div class="card">
+        <div class="section-title-row">
+          <p class="section-title">Próximos lembretes</p>
+        </div>
+        <div id="remindersList" class="reminders-list"></div>
+      </div>
+
+      <!-- quick actions -->
+      <div class="quick-actions">
+        <button class="quick-btn" id="btnQuickKm">
+          <span class="quick-icon">⛽</span>
+          Atualizar KM
+        </button>
+        <button class="quick-btn" id="btnQuickAdd">
+          <span class="quick-icon">＋</span>
+          Nova manutenção
+        </button>
+      </div>
+
+      <!-- maintenance categories -->
+      <div class="section-title-row top-gap">
+        <p class="section-title">Manutenções</p>
+      </div>
+      <div id="dashCategories" class="cat-list"></div>
+
+      <div class="footer-space"></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ===================== EDIT ITEM MODAL ===================== -->
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Atualizar item</h3>
+      <button class="icon-btn" id="modalClose" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span>Última data</span>
+        <input type="date" id="modalDate">
+      </label>
+      <label class="field">
+        <span>KM na época</span>
+        <input type="number" id="modalKm" inputmode="numeric">
+      </label>
+      <button class="btn-primary" id="modalSave">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CUSTOM ITEM MODAL ===================== -->
+<div class="modal-backdrop" id="addModalBackdrop" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Nova manutenção</h3>
+      <button class="icon-btn" id="addModalClose" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="field">
+        <span>Nome</span>
+        <input type="text" id="addName" placeholder="Ex: Troca de embreagem">
+      </label>
+      <label class="field">
+        <span>Categoria</span>
+        <select id="addCategory"></select>
+      </label>
+      <div class="field-row">
+        <label class="field">
+          <span>Intervalo (km)</span>
+          <input type="number" id="addIntervalKm" inputmode="numeric" placeholder="10000">
+        </label>
+        <label class="field">
+          <span>Intervalo (meses)</span>
+          <input type="number" id="addIntervalMonths" inputmode="numeric" placeholder="12">
+        </label>
+      </div>
+      <button class="btn-primary" id="addSave">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
