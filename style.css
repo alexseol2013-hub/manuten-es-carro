@@ -118,6 +118,7 @@ body{
   font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
 }
 .cat-count.ok{ background: rgba(55,214,122,.15); color: var(--good); }
+.cat-count-danger{ background: rgba(255,92,114,.15); color: var(--danger); }
 .cat-chevron{ color: var(--muted); font-size:12px; transition: transform .2s ease; }
 .cat-block.open .cat-chevron{ transform: rotate(180deg); }
 

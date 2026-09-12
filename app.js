@@ -431,7 +431,7 @@ function renderDashboardCategories(){
           <span class="cat-name">${cat}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span class="cat-count ${overdueCount ? '' : 'ok'}">${overdueCount || items.length}</span>
+          ${overdueCount ? `<span class="cat-count cat-count-danger">${overdueCount}</span>` : ''}
           <span class="cat-chevron">▾</span>
         </div>
       </div>
@@ -973,3 +973,14 @@ function init(){
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
+// Registra o service worker (se o navegador suportar) — é o que faz o
+// Chrome oferecer "Instalar app" de verdade, em vez de só um atalho.
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      // sem problema se falhar (ex: rodando fora de https) — o app
+      // continua funcionando normalmente, só sem esse recurso extra.
+    });
+  });
+}
