@@ -77,9 +77,13 @@ function loadState(){
       parsed.kmHistory = [];
       if(parsed.onboarded && parsed.vehicle && parsed.vehicle.km){
         // seed a first entry so the history isn't empty for existing users
-        parsed.kmHistory.push({ date: new Date().toISOString().slice(0,10), km: parsed.vehicle.km, label: "Km inicial" });
+        parsed.kmHistory.push({ id: "kmh_seed_" + Date.now(), date: new Date().toISOString().slice(0,10), km: parsed.vehicle.km, label: "Km inicial" });
       }
     }
+    // backfill ids for entries saved before deletion support existed
+    parsed.kmHistory.forEach((entry, idx) => {
+      if(!entry.id) entry.id = "kmh_legacy_" + idx + "_" + Date.now();
+    });
     return parsed;
   }catch(e){
     return defaultState();
@@ -88,8 +92,10 @@ function loadState(){
 
 function pushKmHistory(km, label){
   const last = state.kmHistory[state.kmHistory.length - 1];
-  if(last && last.km === km) return; // avoid duplicate consecutive entries
-  state.kmHistory.push({ date: new Date().toISOString().slice(0,10), km, label });
+  if(last && last.km === km) return last; // avoid duplicate consecutive entries
+  const entry = { id: "kmh_" + Date.now() + "_" + Math.random().toString(36).slice(2,7), date: new Date().toISOString().slice(0,10), km, label };
+  state.kmHistory.push(entry);
+  return entry;
 }
 
 function pushMaintenanceHistory(item){
@@ -585,7 +591,10 @@ function initKmUpdate(){
     if(val === null) return;
     const num = Number(val);
     if(isNaN(num) || num < 0) { toast("Digite um número válido"); return; }
-    if(num < current){ toast("A km não pode ser menor que a atual"); return; }
+    if(num < current){
+      const ok = window.confirm(`Isso é menor que a KM atual (${current.toLocaleString("pt-BR")} km). Corrigir mesmo assim?`);
+      if(!ok) return;
+    }
     state.vehicle.km = num;
     state.points += 2;
     pushKmHistory(num, "Atualização manual");
@@ -613,6 +622,7 @@ function renderKmHistory(){
   sorted.forEach((entry, idx) => {
     const older = sorted[idx + 1];
     const delta = older ? entry.km - older.km : null;
+    const canDelete = entry.label !== "Km inicial";
     const row = document.createElement("div");
     row.className = "km-history-row";
     row.innerHTML = `
@@ -624,9 +634,26 @@ function renderKmHistory(){
         <div class="km-history-date">${formatDateBR(entry.date)}</div>
         ${delta ? `<div class="km-history-delta">+${delta.toLocaleString("pt-BR")} km</div>` : ''}
       </div>
+      ${canDelete ? `<button class="fuel-entry-delete" data-id="${entry.id}" aria-label="Excluir registro">✕</button>` : '<span style="width:22px;"></span>'}
     `;
+    if(canDelete){
+      row.querySelector(".fuel-entry-delete").addEventListener("click", () => deleteKmHistoryEntry(entry.id));
+    }
     list.appendChild(row);
   });
+}
+
+function deleteKmHistoryEntry(id){
+  const ok = window.confirm("Excluir esse registro do histórico de quilometragem? A KM atual do carro volta para o registro anterior.");
+  if(!ok) return;
+  state.kmHistory = state.kmHistory.filter(e => e.id !== id);
+  const last = state.kmHistory[state.kmHistory.length - 1];
+  if(last) state.vehicle.km = last.km;
+  saveState();
+  renderKmHistory();
+  renderHome();
+  renderMaintenance();
+  toast("Registro excluído");
 }
 
 function initKmHistoryModal(){
@@ -834,15 +861,17 @@ function saveFuelEntry(){
   if(!kmStart || !kmEnd || kmEnd <= kmStart){ toast("Confira o km inicial e final"); return; }
   if(!liters || liters <= 0){ toast("Informe os litros abastecidos"); return; }
 
-  state.fuelLogs.push({
+  const fuelEntry = {
     id: "fuel_" + Date.now(),
     fuelType: selectedFuelType,
     kmStart, kmEnd, liters, price,
     date: new Date().toISOString().slice(0,10),
-  });
+  };
 
   if(kmEnd > (state.vehicle.km || 0)) state.vehicle.km = kmEnd;
-  pushKmHistory(state.vehicle.km, `Abastecimento (${selectedFuelType})`);
+  const kmEntry = pushKmHistory(state.vehicle.km, `Abastecimento (${selectedFuelType})`);
+  fuelEntry.kmHistoryId = kmEntry ? kmEntry.id : null;
+  state.fuelLogs.push(fuelEntry);
   state.points += 8;
   saveState();
   toast("Abastecimento salvo");
@@ -888,10 +917,17 @@ function renderFuelScreen(){
 function deleteFuelEntry(id){
   const ok = window.confirm("Excluir esse abastecimento do histórico?");
   if(!ok) return;
+  const entry = state.fuelLogs.find(l => l.id === id);
   state.fuelLogs = state.fuelLogs.filter(l => l.id !== id);
+  if(entry && entry.kmHistoryId){
+    state.kmHistory = state.kmHistory.filter(h => h.id !== entry.kmHistoryId);
+    const last = state.kmHistory[state.kmHistory.length - 1];
+    if(last) state.vehicle.km = last.km;
+  }
   saveState();
   renderFuelScreen();
   renderHome();
+  renderMaintenance();
   toast("Abastecimento excluído");
 }
 
