@@ -263,6 +263,11 @@ body{
 .fuel-entry-date{ font-size:11.5px; color: var(--muted); font-family:'JetBrains Mono',monospace; }
 .fuel-entry-detail{ font-size:12.5px; color: var(--muted); margin-top:2px; }
 .fuel-entry-kml{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14px; flex-shrink:0; }
+.fuel-entry-delete{
+  background:none; border:none; color: var(--muted); font-size:14px; cursor:pointer;
+  padding: 4px 2px 4px 8px; flex-shrink:0; line-height:1;
+}
+.fuel-entry-delete:active{ color: var(--danger); }
 .empty-fuel{ text-align:center; color: var(--muted); font-size:13.5px; padding: 18px 10px; }
 
 /* ---------- calculator ---------- */
@@ -283,6 +288,12 @@ body{
 .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; }
 .modal-head h3{ font-family:'Space Grotesk',sans-serif; font-size:16px; margin:0; }
 .modal-body .btn-primary{ margin-top: 8px; }
+.modal-secondary-actions{ display:flex; justify-content:space-between; gap:10px; margin-top:12px; }
+.btn-ghost-small{
+  background:none; border:none; color: var(--muted); font-size:12.5px; font-weight:600;
+  cursor:pointer; padding:6px 2px;
+}
+.btn-danger-text{ color: var(--danger); margin-left:auto; }
 .modal-tall .modal-body{ max-height: 62vh; overflow-y: auto; }
 
 /* ---------- km history ---------- */

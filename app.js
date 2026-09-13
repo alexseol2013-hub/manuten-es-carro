@@ -476,6 +476,7 @@ function openEditModal(itemId){
   $("#modalTitle").textContent = item.name;
   $("#modalDate").value = item.lastDate || "";
   $("#modalKm").value = item.lastKm ?? "";
+  $("#modalDeleteItem").hidden = !item.custom;
   $("#modalBackdrop").hidden = false;
 }
 
@@ -504,6 +505,35 @@ function initModal(){
     renderHome();
     renderMaintenance();
     toast("Manutenção atualizada");
+  });
+
+  $("#modalClearRecord").addEventListener("click", () => {
+    const item = state.items.find(i => i.id === editingItemId);
+    if(!item) return;
+    if(!item.lastDate && item.lastKm == null){ closeEditModal(); return; }
+    const ok = window.confirm(`Limpar o registro de "${item.name}"? Ele volta a aparecer como "Sem registro".`);
+    if(!ok) return;
+    item.lastDate = null;
+    item.lastKm = null;
+    item.done = false;
+    saveState();
+    closeEditModal();
+    renderHome();
+    renderMaintenance();
+    toast("Registro limpo");
+  });
+
+  $("#modalDeleteItem").addEventListener("click", () => {
+    const item = state.items.find(i => i.id === editingItemId);
+    if(!item) return;
+    const ok = window.confirm(`Excluir "${item.name}" da lista de manutenções?`);
+    if(!ok) return;
+    state.items = state.items.filter(i => i.id !== item.id);
+    saveState();
+    closeEditModal();
+    renderHome();
+    renderMaintenance();
+    toast("Manutenção excluída");
   });
 }
 
@@ -848,9 +878,21 @@ function renderFuelScreen(){
         <div class="fuel-entry-detail">${(log.kmEnd-log.kmStart).toLocaleString("pt-BR")} km · ${log.liters.toLocaleString("pt-BR")} l${log.price ? ` · R$ ${log.price.toFixed(2)}/l` : ''}</div>
       </div>
       <div class="fuel-entry-kml">${kml.toFixed(1)}<br><small style="font-weight:400;color:var(--muted);">km/l</small></div>
+      <button class="fuel-entry-delete" data-id="${log.id}" aria-label="Excluir abastecimento">✕</button>
     `;
+    row.querySelector(".fuel-entry-delete").addEventListener("click", () => deleteFuelEntry(log.id));
     list.appendChild(row);
   });
+}
+
+function deleteFuelEntry(id){
+  const ok = window.confirm("Excluir esse abastecimento do histórico?");
+  if(!ok) return;
+  state.fuelLogs = state.fuelLogs.filter(l => l.id !== id);
+  saveState();
+  renderFuelScreen();
+  renderHome();
+  toast("Abastecimento excluído");
 }
 
 function fmtKml(v){ return v ? v.toFixed(1) : "—"; }
